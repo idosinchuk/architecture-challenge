@@ -61,8 +61,6 @@ public class PolicyController {
 	public ResponseEntity<PagedResources<PolicyResponseDTO>> getAllPolicies(Pageable pageable,
 			PagedResourcesAssembler pagedResourcesAssembler, @RequestHeader("User-Agent") String userAgent) {
 
-		logger.info("Fetching all policies");
-
 		Page<PolicyResponseDTO> policy = null;
 
 		try {
@@ -93,21 +91,7 @@ public class PolicyController {
 	@ApiOperation(value = "Retrieve policy by the id.")
 	public ResponseEntity<?> getPolicies(@PathVariable("id") int id) {
 
-		logger.info("Fetching policy with ID {}", id);
-
-		PolicyResponseDTO policy = null;
-
-		try {
-			// Search policy in BD by ID
-			policy = policyService.getPolicy(id);
-
-			return new ResponseEntity<>(policy, HttpStatus.OK);
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-
-		}
+		return policyService.getPolicies(id);
 
 	}
 
@@ -122,15 +106,12 @@ public class PolicyController {
 	@ApiOperation(value = "Add a policy.")
 	public ResponseEntity<?> addPolicies(@RequestBody PolicyRequestDTO policyRequestDTO) {
 
-		logger.info(("Process add new policy"));
-
 		return policyService.addPolicy(policyRequestDTO);
 
 	}
 
 	/**
-	 * El método PATCH solicita que se aplique un conjunto de cambios descritos en
-	 * la entidad de solicitud al recurso identificado por el URI de Solicitud.
+	 * Update a policy
 	 * 
 	 * @param id               policy identifier
 	 * @param policyRequestDTO object to update
@@ -143,9 +124,7 @@ public class PolicyController {
 	public ResponseEntity<?> updatePolicies(@PathVariable("id") int id,
 			@RequestBody PolicyRequestDTO policyRequestDTO) {
 
-		logger.info("Process patch policy");
-
-		// Set the policy id to the wanted request object
+		// Set the policy ID to the wanted request object
 		policyRequestDTO.setId(id);
 
 		return policyService.updatePolicy(policyRequestDTO);

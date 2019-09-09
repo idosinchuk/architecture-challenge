@@ -25,12 +25,12 @@ public interface PolicyService {
 	Page<PolicyResponseDTO> getAllPolicies(Pageable pageable);
 
 	/**
-	 * Find policy by the id.
+	 * Find policies by the id.
 	 * 
 	 * @param id policy identifier
-	 * @return {@link PolicyResponseDTO}
+	 * @return ResponseEntity
 	 */
-	PolicyResponseDTO getPolicy(int id);
+	ResponseEntity<?> getPolicies(int id);
 
 	/**
 	 * Add a policy..

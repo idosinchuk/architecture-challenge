@@ -64,6 +64,8 @@ public class PolicyServiceImpl implements PolicyService {
 	 */
 	public Page<PolicyResponseDTO> getAllPolicies(Pageable pageable) {
 
+		logger.info("Fetching all policies");
+
 		Page<PolicyEntity> entityResponse = policyRepository.findAll(pageable);
 
 		// Convert Entity response to DTO
@@ -75,11 +77,22 @@ public class PolicyServiceImpl implements PolicyService {
 	/**
 	 * {@inheritDoc}
 	 */
-	public PolicyResponseDTO getPolicy(int id) {
+	public ResponseEntity<?> getPolicies(int id) {
 
-		PolicyEntity entityResponse = policyRepository.findById(id);
+		PolicyResponseDTO policyResponseDTO = null;
 
-		return modelMapper.map(entityResponse, PolicyResponseDTO.class);
+		try {
+			PolicyEntity entityResponse = policyRepository.findById(id);
+
+			policyResponseDTO = modelMapper.map(entityResponse, PolicyResponseDTO.class);
+
+			return new ResponseEntity<>(policyResponseDTO, HttpStatus.OK);
+
+		} catch (Exception e) {
+			logger.error("An error occurred! {}", e.getMessage());
+			return CustomErrorType.returnResponsEntityError(e.getMessage());
+
+		}
 
 	}
 
@@ -88,6 +101,8 @@ public class PolicyServiceImpl implements PolicyService {
 	 */
 	@Transactional
 	public ResponseEntity<?> addPolicy(PolicyRequestDTO policyRequestDTO) {
+
+		logger.info(("Process add new policy"));
 
 		Resources<CustomMessage> resource = null;
 
@@ -151,6 +166,8 @@ public class PolicyServiceImpl implements PolicyService {
 	 */
 	@Transactional
 	public ResponseEntity<?> updatePolicy(PolicyRequestDTO policyRequestDTO) {
+
+		logger.info("Process patch policy");
 
 		Resources<CustomMessage> resource = null;
 
