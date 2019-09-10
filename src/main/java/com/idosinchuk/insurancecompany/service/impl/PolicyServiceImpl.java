@@ -57,14 +57,12 @@ public class PolicyServiceImpl implements PolicyService {
 	@Autowired
 	private ModelMapper modelMapper;
 
-	public static final Logger logger = LoggerFactory.getLogger(PolicyController.class);
+	public static final Logger logger = LoggerFactory.getLogger(PolicyServiceImpl.class);
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public Page<PolicyResponseDTO> getAllPolicies(Pageable pageable) {
-
-		logger.info("Fetching all policies");
 
 		Page<PolicyEntity> entityResponse = policyRepository.findAll(pageable);
 
@@ -77,22 +75,11 @@ public class PolicyServiceImpl implements PolicyService {
 	/**
 	 * {@inheritDoc}
 	 */
-	public ResponseEntity<?> getPolicies(int id) {
+	public PolicyResponseDTO getPolicies(String policyCode) {
 
-		PolicyResponseDTO policyResponseDTO = null;
+		PolicyEntity entityResponse = policyRepository.findByPolicyCode(policyCode);
 
-		try {
-			PolicyEntity entityResponse = policyRepository.findById(id);
-
-			policyResponseDTO = modelMapper.map(entityResponse, PolicyResponseDTO.class);
-
-			return new ResponseEntity<>(policyResponseDTO, HttpStatus.OK);
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-
-		}
+		return modelMapper.map(entityResponse, PolicyResponseDTO.class);
 
 	}
 
@@ -101,8 +88,6 @@ public class PolicyServiceImpl implements PolicyService {
 	 */
 	@Transactional
 	public ResponseEntity<?> addPolicy(PolicyRequestDTO policyRequestDTO) {
-
-		logger.info(("Process add new policy"));
 
 		Resources<CustomMessage> resource = null;
 
@@ -123,29 +108,27 @@ public class PolicyServiceImpl implements PolicyService {
 			}
 
 			// Check if product exists in the database
-			ProductEntity productEntity = productRepository.findById(policyRequestDTO.getProductId());
+			ProductEntity productEntity = productRepository.findByProductCode(policyRequestDTO.getProductCode());
 
 			if (productEntity != null) {
 				entityRequest.setProduct(productEntity);
 			}
 
 			// Check if holder exists in the database
-			HolderEntity holderEntity = holderRepository.findById(policyRequestDTO.getHolderId());
+			HolderEntity holderEntity = holderRepository.findByPassportNumber(policyRequestDTO.getPassportNumber());
 
 			if (holderEntity != null) {
 				entityRequest.setHolder(holderEntity);
 			}
 
 			// Check if vehicle exists in the database
-			VehicleEntity vehicleEntity = vehicleRepository.findById(policyRequestDTO.getVehicleId());
+			VehicleEntity vehicleEntity = vehicleRepository.findByLicensePlate(policyRequestDTO.getLicensePlate());
 
 			if (vehicleEntity != null) {
 				entityRequest.setVehicle(vehicleEntity);
 			}
 
-			PolicyEntity entityResponse = policyRepository.save(entityRequest);
-
-			modelMapper.map(entityResponse, PolicyResponseDTO.class);
+			policyRepository.save(entityRequest);
 
 			List<CustomMessage> customMessageList = ArrayListCustomMessage.setMessage("Created new policy",
 					HttpStatus.CREATED);
@@ -165,9 +148,7 @@ public class PolicyServiceImpl implements PolicyService {
 	 * {@inheritDoc}
 	 */
 	@Transactional
-	public ResponseEntity<?> updatePolicy(PolicyRequestDTO policyRequestDTO) {
-
-		logger.info("Process patch policy");
+	public ResponseEntity<?> updatePolicy(String policyCode, PolicyRequestDTO policyRequestDTO) {
 
 		Resources<CustomMessage> resource = null;
 
@@ -175,30 +156,30 @@ public class PolicyServiceImpl implements PolicyService {
 
 			List<CustomMessage> customMessageList = null;
 
-			// Find policy by id for check if exists in DB
-			PolicyEntity policyEntity = policyRepository.findById(policyRequestDTO.getId());
+			customMessageList = ArrayListCustomMessage.setMessage("Patch policy process", HttpStatus.OK);
 
-			PolicyResponseDTO policyResponseDTO = modelMapper.map(policyEntity, PolicyResponseDTO.class);
+			// Find policy by policy code for check if exists in DB
+			PolicyEntity policyEntity = policyRepository.findByPolicyCode(policyCode);
 
 			// If exists
-			if (policyResponseDTO != null) {
-				customMessageList = ArrayListCustomMessage.setMessage("Patch policy process", HttpStatus.OK);
+			if (policyEntity != null) {
 
 				// The policy's code will always be the same, so we do not allow it to be
 				// updated, for them we overwrite the field with the original value.
-				policyRequestDTO.setPolicyCode(policyResponseDTO.getPolicyCode());
+				policyRequestDTO.setPolicyCode(policyCode);
 
 				PolicyEntity entityRequest = modelMapper.map(policyRequestDTO, PolicyEntity.class);
 
-				if (policyRequestDTO.getProductId() != 0) {
-					ProductEntity productEntity = productRepository.findById(policyRequestDTO.getProductId());
+				if (policyRequestDTO.getProductCode() != null && !policyRequestDTO.getProductCode().isEmpty()) {
+					ProductEntity productEntity = productRepository
+							.findByProductCode(policyRequestDTO.getProductCode());
 
 					// Check if product exists in the database
 					if (productEntity != null) {
 						entityRequest.setProduct(productEntity);
 					} else {
 						customMessageList = ArrayListCustomMessage.setMessage(
-								"Product ID " + policyRequestDTO.getVehicleId() + " does not exist!",
+								"Product code " + policyRequestDTO.getProductCode() + " does not exist!",
 								HttpStatus.BAD_REQUEST);
 						resource = new Resources<>(customMessageList);
 						resource.add(linkTo(PolicyController.class).withSelfRel());
@@ -206,15 +187,16 @@ public class PolicyServiceImpl implements PolicyService {
 					}
 				}
 
-				if (policyRequestDTO.getHolderId() != 0) {
-					HolderEntity holderEntity = holderRepository.findById(policyRequestDTO.getHolderId());
+				if (policyRequestDTO.getPassportNumber() != null && !policyRequestDTO.getProductCode().isEmpty()) {
+					HolderEntity holderEntity = holderRepository
+							.findByPassportNumber(policyRequestDTO.getPassportNumber());
 
 					// Check if holder exists in the database
 					if (holderEntity != null) {
 						entityRequest.setHolder(holderEntity);
 					} else {
 						customMessageList = ArrayListCustomMessage.setMessage(
-								"Holder ID " + policyRequestDTO.getVehicleId() + " does not exist!",
+								"Holder passport number " + policyRequestDTO.getPassportNumber() + " does not exist!",
 								HttpStatus.BAD_REQUEST);
 						resource = new Resources<>(customMessageList);
 						resource.add(linkTo(PolicyController.class).withSelfRel());
@@ -222,15 +204,16 @@ public class PolicyServiceImpl implements PolicyService {
 					}
 				}
 
-				if (policyRequestDTO.getVehicleId() != 0) {
-					VehicleEntity vehicleEntity = vehicleRepository.findById(policyRequestDTO.getVehicleId());
+				if (policyRequestDTO.getLicensePlate() != null && !policyRequestDTO.getProductCode().isEmpty()) {
+					VehicleEntity vehicleEntity = vehicleRepository
+							.findByLicensePlate(policyRequestDTO.getLicensePlate());
 
 					// Check if vehicle exists in the database
 					if (vehicleEntity != null) {
 						entityRequest.setVehicle(vehicleEntity);
 					} else {
 						customMessageList = ArrayListCustomMessage.setMessage(
-								"Vehicle ID " + policyRequestDTO.getVehicleId() + " does not exist!",
+								"Vehicle license plate " + policyRequestDTO.getLicensePlate() + " does not exist!",
 								HttpStatus.BAD_REQUEST);
 						resource = new Resources<>(customMessageList);
 						resource.add(linkTo(PolicyController.class).withSelfRel());
@@ -238,13 +221,11 @@ public class PolicyServiceImpl implements PolicyService {
 					}
 				}
 
-				PolicyEntity entityResponse = policyRepository.save(entityRequest);
-
-				modelMapper.map(entityResponse, PolicyResponseDTO.class);
+				policyRepository.save(entityRequest);
 
 			} else {
-				customMessageList = ArrayListCustomMessage
-						.setMessage("Policy ID" + policyRequestDTO.getId() + " Not Found!", HttpStatus.BAD_REQUEST);
+				customMessageList = ArrayListCustomMessage.setMessage(
+						"Policy code" + policyRequestDTO.getPolicyCode() + " Not Found!", HttpStatus.BAD_REQUEST);
 
 				resource = new Resources<>(customMessageList);
 				resource.add(linkTo(PolicyController.class).withSelfRel());
@@ -253,7 +234,7 @@ public class PolicyServiceImpl implements PolicyService {
 			}
 
 			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(PolicyController.class).slash(policyRequestDTO.getId()).withSelfRel());
+			resource.add(linkTo(PolicyController.class).slash(policyRequestDTO.getPolicyCode()).withSelfRel());
 		} catch (Exception e) {
 			logger.error("An error occurred! {}", e.getMessage());
 			return CustomErrorType.returnResponsEntityError(e.getMessage());

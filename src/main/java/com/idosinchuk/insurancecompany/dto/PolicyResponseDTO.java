@@ -30,13 +30,13 @@ public class PolicyResponseDTO {
 	@ApiModelProperty(value = "Policy cost", example = "100")
 	private BigDecimal cost;
 
-	@ApiModelProperty(value = "Product", example = "")
+	@ApiModelProperty(value = "Product code", example = "1")
 	private ProductResponseDTO product;
 
-	@ApiModelProperty(value = "Holder", example = "")
+	@ApiModelProperty(value = "Passport number", example = "PS9393474S")
 	private HolderResponseDTO holder;
 
-	@ApiModelProperty(value = "Vehicle", example = "")
+	@ApiModelProperty(value = "License Plate", example = "6846JNR")
 	private VehicleResponseDTO vehicle;
 
 }

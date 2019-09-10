@@ -2,6 +2,7 @@ package com.idosinchuk.insurancecompany.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 import com.idosinchuk.insurancecompany.dto.ProductRequestDTO;
 import com.idosinchuk.insurancecompany.dto.ProductResponseDTO;
@@ -26,26 +27,27 @@ public interface ProductService {
 	/**
 	 * Find product by the id.
 	 * 
-	 * @param id product identifier
+	 * @param productCode product code
 	 * @return {@link ProductResponseDTO}
 	 */
-	ProductResponseDTO getProduct(int id);
+	ProductResponseDTO getProduct(String productCode);
 
 	/**
 	 * Add a product..
 	 * 
 	 * @param productRequestDTO object to save
 	 * 
-	 * @return {@link ProductResponseDTO}
+	 * @return ResponseEntity
 	 */
-	ProductResponseDTO addProduct(ProductRequestDTO productRequestDTO);
+	ResponseEntity<?> addProduct(ProductRequestDTO productRequestDTO);
 
 	/**
 	 * Update the product.
 	 * 
+	 * @param productCode       product code
 	 * @param productRequestDTO object to save
 	 * 
-	 * @return {@link ProductResponseDTO}
+	 * @return ResponseEntity
 	 */
-	ProductResponseDTO updateProduct(ProductRequestDTO productRequestDTO);
+	ResponseEntity<?> updateProduct(String productCode, ProductRequestDTO productRequestDTO);
 }

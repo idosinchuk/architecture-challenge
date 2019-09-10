@@ -1,9 +1,6 @@
 package com.idosinchuk.insurancecompany.controller;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-
 import java.util.Arrays;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,11 +24,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.idosinchuk.insurancecompany.common.CustomMessage;
 import com.idosinchuk.insurancecompany.dto.ProductRequestDTO;
 import com.idosinchuk.insurancecompany.dto.ProductResponseDTO;
 import com.idosinchuk.insurancecompany.service.ProductService;
-import com.idosinchuk.insurancecompany.util.ArrayListCustomMessage;
 import com.idosinchuk.insurancecompany.util.CustomErrorType;
 
 import io.swagger.annotations.Api;
@@ -89,23 +83,23 @@ public class ProductController {
 	}
 
 	/**
-	 * Retrieve product by the id.
+	 * Retrieve product by the productCode.
 	 * 
-	 * @param id product identifier
+	 * @param productCode product code
 	 * @return ResponseEntity with status and productResponseDTO
 	 */
-	@GetMapping(path = "/products/{id}")
+	@GetMapping(path = "/products/{productCode}")
 	@ResponseBody
-	@ApiOperation(value = "Retrieve product by the id.")
-	public ResponseEntity<?> getProducts(@PathVariable("id") int id) {
+	@ApiOperation(value = "Retrieve product by the productCode.")
+	public ResponseEntity<?> getProducts(@PathVariable("productCode") String productCode) {
 
-		logger.info("Fetching product with ID {}", id);
+		logger.info("Fetching product with productCode {}", productCode);
 
 		ProductResponseDTO product = null;
 
 		try {
-			// Search product in BD by ID
-			product = productService.getProduct(id);
+			// Search product in BD by productCode
+			product = productService.getProduct(productCode);
 
 			return new ResponseEntity<>(product, HttpStatus.OK);
 
@@ -130,83 +124,27 @@ public class ProductController {
 
 		logger.info(("Process add new product"));
 
-		Resources<CustomMessage> resource = null;
+		return productService.addProduct(productRequestDTO);
 
-		try {
-
-			productService.addProduct(productRequestDTO);
-
-			List<CustomMessage> customMessageList = ArrayListCustomMessage.setMessage("Created new product",
-					HttpStatus.CREATED);
-
-			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(ProductController.class).withSelfRel());
-			// resource.add(linkTo(ProducerDirectorController.class).withRel("product_director"));
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-		}
-
-		return new ResponseEntity<>(resource, HttpStatus.OK);
 	}
 
 	/**
 	 * El método PATCH solicita que se aplique un conjunto de cambios descritos en
 	 * la entidad de solicitud al recurso identificado por el URI de Solicitud.
 	 * 
-	 * @param id                product identifier
+	 * @param productCode       product code
 	 * @param productRequestDTO object to update
 	 * @return ResponseEntity with resource and status
 	 */
-	@PatchMapping(path = "/products/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
+	@PatchMapping(path = "/products/{productCode}", consumes = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Update the product.")
-	public ResponseEntity<?> updateProducts(@PathVariable("id") int id,
+	public ResponseEntity<?> updateProducts(@PathVariable("productCode") String productCode,
 			@RequestBody ProductRequestDTO productRequestDTO) {
 
 		logger.info("Process patch product");
 
-		Resources<CustomMessage> resource = null;
-
-		try {
-
-			List<CustomMessage> customMessageList = null;
-
-			// Find product by id for check if exists in DB
-			ProductResponseDTO productResponseDTO = productService.getProduct(id);
-
-			// If exists
-			if (productResponseDTO != null) {
-
-				customMessageList = ArrayListCustomMessage.setMessage("Patch product process", HttpStatus.OK);
-
-				// Set the product id to the wanted request object
-				productRequestDTO.setId(id);
-
-				productService.updateProduct(productRequestDTO);
-
-			} else {
-				customMessageList = ArrayListCustomMessage.setMessage("Product Id" + id + " Not Found!",
-						HttpStatus.BAD_REQUEST);
-
-				resource = new Resources<>(customMessageList);
-				resource.add(linkTo(ProductController.class).withSelfRel());
-
-				return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
-			}
-
-			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(ProductController.class).slash(id).withSelfRel());
-			// resource.add(linkTo(ProducerDirectorController.class).withRel("product_director"));
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-
-		}
-
-		return new ResponseEntity<>(resource, HttpStatus.OK);
+		return productService.updateProduct(productCode, productRequestDTO);
 	}
 }

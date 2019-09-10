@@ -35,15 +35,15 @@ public class PolicyRequestDTO {
 	private BigDecimal cost;
 
 	@NotNull
-	@ApiModelProperty(value = "Product ID", example = "1")
-	private int productId;
+	@ApiModelProperty(value = "Product code", example = "1")
+	private String productCode;
 
 	@NotNull
-	@ApiModelProperty(value = "Holder ID", example = "1")
-	private int holderId;
+	@ApiModelProperty(value = "Passport number", example = "PS9393474S")
+	private String passportNumber;
 
 	@NotNull
-	@ApiModelProperty(value = "Vehicle ID", example = "1")
-	private int vehicleId;
+	@ApiModelProperty(value = "License Plate", example = "1")
+	private String licensePlate;
 
 }

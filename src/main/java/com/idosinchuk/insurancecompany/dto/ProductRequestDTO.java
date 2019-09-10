@@ -28,4 +28,8 @@ public class ProductRequestDTO {
 	@ApiModelProperty(value = "Product", example = "Full of risk")
 	private String productName;
 
+	@NotNull
+	@ApiModelProperty(value = "Code of the product", example = "S6DHD78S")
+	private String productCode;
+
 }

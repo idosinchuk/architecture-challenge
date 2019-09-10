@@ -33,4 +33,7 @@ public class HolderResponseDTO {
 
 	@ApiModelProperty(value = "Email", example = "idosinchuk@example.com")
 	private String email;
+
+	@ApiModelProperty(value = "Passport number", example = "PS9393474S")
+	private String passportNumber;
 }

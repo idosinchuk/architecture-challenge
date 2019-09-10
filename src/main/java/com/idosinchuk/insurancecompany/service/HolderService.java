@@ -2,6 +2,7 @@ package com.idosinchuk.insurancecompany.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 import com.idosinchuk.insurancecompany.dto.HolderRequestDTO;
 import com.idosinchuk.insurancecompany.dto.HolderResponseDTO;
@@ -26,26 +27,27 @@ public interface HolderService {
 	/**
 	 * Find holder by the id.
 	 * 
-	 * @param id holder identifier
+	 * @param passportNumber holder passport number
 	 * @return {@link HolderResponseDTO}
 	 */
-	HolderResponseDTO getHolder(int id);
+	HolderResponseDTO getHolder(String passportNumber);
 
 	/**
 	 * Add a holder..
 	 * 
 	 * @param holderRequestDTO object to save
 	 * 
-	 * @return {@link HolderResponseDTO}
+	 * @return ResponseEntity
 	 */
-	HolderResponseDTO addHolder(HolderRequestDTO holderRequestDTO);
+	ResponseEntity<?> addHolder(HolderRequestDTO holderRequestDTO);
 
 	/**
 	 * Update the holder.
 	 * 
+	 * @param passportNumber   holder passport number
 	 * @param holderRequestDTO object to save
 	 * 
-	 * @return {@link HolderResponseDTO}
+	 * @return ResponseEntity
 	 */
-	HolderResponseDTO updateHolder(HolderRequestDTO holderRequestDTO);
+	ResponseEntity<?> updateHolder(String passportNumber, HolderRequestDTO holderRequestDTO);
 }

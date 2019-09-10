@@ -1,18 +1,32 @@
 package com.idosinchuk.insurancecompany.service.impl;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.Resources;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.idosinchuk.insurancecompany.common.CustomMessage;
+import com.idosinchuk.insurancecompany.controller.HolderController;
+import com.idosinchuk.insurancecompany.controller.ProductController;
 import com.idosinchuk.insurancecompany.dto.HolderRequestDTO;
 import com.idosinchuk.insurancecompany.dto.HolderResponseDTO;
 import com.idosinchuk.insurancecompany.entity.HolderEntity;
 import com.idosinchuk.insurancecompany.repository.HolderRepository;
 import com.idosinchuk.insurancecompany.service.HolderService;
+import com.idosinchuk.insurancecompany.util.ArrayListCustomMessage;
+import com.idosinchuk.insurancecompany.util.CustomErrorType;
 
 /**
  * Implementation for holder service
@@ -28,6 +42,8 @@ public class HolderServiceImpl implements HolderService {
 
 	@Autowired
 	private ModelMapper modelMapper;
+
+	public static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
 	/**
 	 * {@inheritDoc}
@@ -45,9 +61,9 @@ public class HolderServiceImpl implements HolderService {
 	/**
 	 * {@inheritDoc}
 	 */
-	public HolderResponseDTO getHolder(int id) {
+	public HolderResponseDTO getHolder(String passportNumber) {
 
-		HolderEntity entityResponse = holderRepository.findById(id);
+		HolderEntity entityResponse = holderRepository.findByPassportNumber(passportNumber);
 
 		return modelMapper.map(entityResponse, HolderResponseDTO.class);
 	}
@@ -56,13 +72,43 @@ public class HolderServiceImpl implements HolderService {
 	 * {@inheritDoc}
 	 */
 	@Transactional
-	public HolderResponseDTO addHolder(HolderRequestDTO holderRequestDTO) {
+	public ResponseEntity<?> addHolder(HolderRequestDTO holderRequestDTO) {
 
-		HolderEntity entityRequest = modelMapper.map(holderRequestDTO, HolderEntity.class);
+		Resources<CustomMessage> resource = null;
 
-		HolderEntity entityResponse = holderRepository.save(entityRequest);
+		try {
+			List<CustomMessage> customMessageList = null;
 
-		return modelMapper.map(entityResponse, HolderResponseDTO.class);
+			// Check if productCode exists in DB
+			HolderEntity holderEntity = holderRepository.findByPassportNumber(holderRequestDTO.getPassportNumber());
+
+			// If exists
+			if (holderEntity != null) {
+				customMessageList = ArrayListCustomMessage.setMessage(
+						"Passport number" + holderRequestDTO.getPassportNumber() + " already exists in database!",
+						HttpStatus.BAD_REQUEST);
+
+				resource = new Resources<>(customMessageList);
+				resource.add(linkTo(HolderController.class).withSelfRel());
+
+				return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
+			}
+
+			HolderEntity entityRequest = modelMapper.map(holderRequestDTO, HolderEntity.class);
+
+			holderRepository.save(entityRequest);
+
+			customMessageList = ArrayListCustomMessage.setMessage("Created new holder", HttpStatus.CREATED);
+
+			resource = new Resources<>(customMessageList);
+			resource.add(linkTo(ProductController.class).withSelfRel());
+
+		} catch (Exception e) {
+			logger.error("An error occurred! {}", e.getMessage());
+			return CustomErrorType.returnResponsEntityError(e.getMessage());
+		}
+
+		return new ResponseEntity<>(resource, HttpStatus.OK);
 
 	}
 
@@ -70,13 +116,50 @@ public class HolderServiceImpl implements HolderService {
 	 * {@inheritDoc}
 	 */
 	@Transactional
-	public HolderResponseDTO updateHolder(HolderRequestDTO holderRequestDTO) {
+	public ResponseEntity<?> updateHolder(String passportNumber, HolderRequestDTO holderRequestDTO) {
 
-		HolderEntity entityRequest = modelMapper.map(holderRequestDTO, HolderEntity.class);
+		Resources<CustomMessage> resource = null;
 
-		HolderEntity entityResponse = holderRepository.save(entityRequest);
+		try {
 
-		return modelMapper.map(entityResponse, HolderResponseDTO.class);
+			List<CustomMessage> customMessageList = null;
+
+			// Find product by passportNumber for check if exists in DB
+			HolderEntity holderEntity = holderRepository.findByPassportNumber(passportNumber);
+
+			// If exists
+			if (holderEntity != null) {
+
+				customMessageList = ArrayListCustomMessage.setMessage("Patch holder process", HttpStatus.OK);
+
+				// The passport number will always be the same, so we do not allow it to be
+				// updated, for them we overwrite the field with the original value.
+				holderRequestDTO.setPassportNumber(passportNumber);
+				holderRequestDTO.setId(holderEntity.getId());
+
+				HolderEntity entityRequest = modelMapper.map(holderRequestDTO, HolderEntity.class);
+				holderRepository.save(entityRequest);
+
+			} else {
+				customMessageList = ArrayListCustomMessage
+						.setMessage("Passport number " + passportNumber + " Not Found!", HttpStatus.BAD_REQUEST);
+
+				resource = new Resources<>(customMessageList);
+				resource.add(linkTo(HolderController.class).withSelfRel());
+
+				return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
+			}
+
+			resource = new Resources<>(customMessageList);
+			resource.add(linkTo(HolderController.class).slash(passportNumber).withSelfRel());
+
+		} catch (Exception e) {
+			logger.error("An error occurred! {}", e.getMessage());
+			return CustomErrorType.returnResponsEntityError(e.getMessage());
+
+		}
+
+		return new ResponseEntity<>(resource, HttpStatus.OK);
 
 	}
 }

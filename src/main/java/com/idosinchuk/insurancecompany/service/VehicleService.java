@@ -2,6 +2,7 @@ package com.idosinchuk.insurancecompany.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
 import com.idosinchuk.insurancecompany.dto.VehicleRequestDTO;
 import com.idosinchuk.insurancecompany.dto.VehicleResponseDTO;
@@ -24,28 +25,29 @@ public interface VehicleService {
 	Page<VehicleResponseDTO> getAllVehicles(Pageable pageable);
 
 	/**
-	 * Find vehicle by the id.
+	 * Find vehicle by the licensePlate.
 	 * 
-	 * @param id vehicle identifier
+	 * @param licensePlate vehicle license plate
 	 * @return {@link VehicleResponseDTO}
 	 */
-	VehicleResponseDTO getVehicle(int id);
+	VehicleResponseDTO getVehicle(String licensePlate);
 
 	/**
 	 * Add a vehicle..
 	 * 
 	 * @param vehicleRequestDTO object to save
 	 * 
-	 * @return {@link VehicleResponseDTO}
+	 * @return ResponseEntity
 	 */
-	VehicleResponseDTO addVehicle(VehicleRequestDTO vehicleRequestDTO);
+	ResponseEntity<?> addVehicle(VehicleRequestDTO vehicleRequestDTO);
 
 	/**
 	 * Update the vehicle.
 	 * 
+	 * @param licensePlate      vehicle license plate
 	 * @param vehicleRequestDTO object to save
 	 * 
-	 * @return {@link VehicleResponseDTO}
+	 * @return ResponseEntity
 	 */
-	VehicleResponseDTO updateVehicle(VehicleRequestDTO vehicleRequestDTO);
+	ResponseEntity<?> updateVehicle(String licensePlate, VehicleRequestDTO vehicleRequestDTO);
 }

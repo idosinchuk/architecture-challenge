@@ -1,9 +1,6 @@
 package com.idosinchuk.insurancecompany.controller;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-
 import java.util.Arrays;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,11 +24,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.idosinchuk.insurancecompany.common.CustomMessage;
 import com.idosinchuk.insurancecompany.dto.HolderRequestDTO;
 import com.idosinchuk.insurancecompany.dto.HolderResponseDTO;
 import com.idosinchuk.insurancecompany.service.HolderService;
-import com.idosinchuk.insurancecompany.util.ArrayListCustomMessage;
 import com.idosinchuk.insurancecompany.util.CustomErrorType;
 
 import io.swagger.annotations.Api;
@@ -91,21 +85,21 @@ public class HolderController {
 	/**
 	 * Retrieve holder by the id.
 	 * 
-	 * @param id holder identifier
+	 * @param passportNumber holder passport number
 	 * @return ResponseEntity with status and holderResponseDTO
 	 */
-	@GetMapping(path = "/holders/{id}")
+	@GetMapping(path = "/holders/{passportNumber}")
 	@ResponseBody
-	@ApiOperation(value = "Retrieve holder by the id.")
-	public ResponseEntity<?> getHolders(@PathVariable("id") int id) {
+	@ApiOperation(value = "Retrieve holder by the passportNumber.")
+	public ResponseEntity<?> getHolders(@PathVariable("passportNumber") String passportNumber) {
 
-		logger.info("Fetching holder with ID {}", id);
+		logger.info("Fetching holder with passportNumber {}", passportNumber);
 
 		HolderResponseDTO holder = null;
 
 		try {
-			// Search holder in BD by ID
-			holder = holderService.getHolder(id);
+			// Search holder in BD by passportNumber
+			holder = holderService.getHolder(passportNumber);
 
 			return new ResponseEntity<>(holder, HttpStatus.OK);
 
@@ -130,82 +124,28 @@ public class HolderController {
 
 		logger.info(("Process add new holder"));
 
-		Resources<CustomMessage> resource = null;
+		return holderService.addHolder(holderRequestDTO);
 
-		try {
-
-			holderService.addHolder(holderRequestDTO);
-
-			List<CustomMessage> customMessageList = ArrayListCustomMessage.setMessage("Created new holder",
-					HttpStatus.CREATED);
-
-			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(HolderController.class).withSelfRel());
-			// resource.add(linkTo(ProducerDirectorController.class).withRel("holder_director"));
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-		}
-
-		return new ResponseEntity<>(resource, HttpStatus.OK);
 	}
 
 	/**
 	 * El método PATCH solicita que se aplique un conjunto de cambios descritos en
 	 * la entidad de solicitud al recurso identificado por el URI de Solicitud.
 	 * 
-	 * @param id               holder identifier
+	 * @param passportNumber   holder passport number
 	 * @param holderRequestDTO object to update
 	 * @return ResponseEntity with resource and status
 	 */
-	@PatchMapping(path = "/holders/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
+	@PatchMapping(path = "/holders/{passportNumber}", consumes = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Update the holder.")
-	public ResponseEntity<?> updateHolders(@PathVariable("id") int id, @RequestBody HolderRequestDTO holderRequestDTO) {
+	public ResponseEntity<?> updateHolders(@PathVariable("passportNumber") String passportNumber,
+			@RequestBody HolderRequestDTO holderRequestDTO) {
 
 		logger.info("Process patch holder");
 
-		Resources<CustomMessage> resource = null;
+		return holderService.updateHolder(passportNumber, holderRequestDTO);
 
-		try {
-
-			List<CustomMessage> customMessageList = null;
-
-			// Find holder by id for check if exists in DB
-			HolderResponseDTO holderResponseDTO = holderService.getHolder(id);
-
-			// If exists
-			if (holderResponseDTO != null) {
-
-				customMessageList = ArrayListCustomMessage.setMessage("Patch holder process", HttpStatus.OK);
-
-				// Set the holder id to the wanted request object
-				holderRequestDTO.setId(id);
-
-				holderService.updateHolder(holderRequestDTO);
-
-			} else {
-				customMessageList = ArrayListCustomMessage.setMessage("Holder Id" + id + " Not Found!",
-						HttpStatus.BAD_REQUEST);
-
-				resource = new Resources<>(customMessageList);
-				resource.add(linkTo(HolderController.class).withSelfRel());
-
-				return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
-			}
-
-			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(HolderController.class).slash(id).withSelfRel());
-			// resource.add(linkTo(ProducerDirectorController.class).withRel("holder_director"));
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-
-		}
-
-		return new ResponseEntity<>(resource, HttpStatus.OK);
 	}
 }

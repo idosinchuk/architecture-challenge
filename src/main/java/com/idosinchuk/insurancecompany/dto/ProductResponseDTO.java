@@ -22,7 +22,10 @@ public class ProductResponseDTO {
 	@ApiModelProperty(value = "Id", example = "1")
 	private int id;
 
-	@ApiModelProperty(value = "Product", example = "Full of risk")
+	@ApiModelProperty(value = "Name of the product", example = "Full of risk")
 	private String productName;
+
+	@ApiModelProperty(value = "Code of the product", example = "S6DHD78S")
+	private String productCode;
 
 }

@@ -25,12 +25,12 @@ public interface PolicyService {
 	Page<PolicyResponseDTO> getAllPolicies(Pageable pageable);
 
 	/**
-	 * Find policies by the id.
+	 * Find policies by the policyCode.
 	 * 
-	 * @param id policy identifier
-	 * @return ResponseEntity
+	 * @param policyCode policy code
+	 * @return {@link PolicyResponseDTO}
 	 */
-	ResponseEntity<?> getPolicies(int id);
+	PolicyResponseDTO getPolicies(String policyCode);
 
 	/**
 	 * Add a policy..
@@ -44,9 +44,10 @@ public interface PolicyService {
 	/**
 	 * Update the policy.
 	 * 
+	 * @param policyCode       policy code
 	 * @param policyRequestDTO object to save
 	 * 
 	 * @return ResponseEntity
 	 */
-	ResponseEntity<?> updatePolicy(PolicyRequestDTO policyRequestDTO);
+	ResponseEntity<?> updatePolicy(String policyCode, PolicyRequestDTO policyRequestDTO);
 }

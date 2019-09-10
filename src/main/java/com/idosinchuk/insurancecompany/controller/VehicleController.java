@@ -1,9 +1,6 @@
 package com.idosinchuk.insurancecompany.controller;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-
 import java.util.Arrays;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +9,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedResources;
-import org.springframework.hateoas.Resources;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,11 +24,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.idosinchuk.insurancecompany.common.CustomMessage;
 import com.idosinchuk.insurancecompany.dto.VehicleRequestDTO;
 import com.idosinchuk.insurancecompany.dto.VehicleResponseDTO;
 import com.idosinchuk.insurancecompany.service.VehicleService;
-import com.idosinchuk.insurancecompany.util.ArrayListCustomMessage;
 import com.idosinchuk.insurancecompany.util.CustomErrorType;
 
 import io.swagger.annotations.Api;
@@ -91,21 +85,21 @@ public class VehicleController {
 	/**
 	 * Retrieve vehicle by the id.
 	 * 
-	 * @param id vehicle identifier
+	 * @param licensePlate vehicle license plate
 	 * @return ResponseEntity with status and vehicleResponseDTO
 	 */
-	@GetMapping(path = "/vehicles/{id}")
+	@GetMapping(path = "/vehicles/{licensePlate}")
 	@ResponseBody
-	@ApiOperation(value = "Retrieve vehicle by the id.")
-	public ResponseEntity<?> getVehicles(@PathVariable("id") int id) {
+	@ApiOperation(value = "Retrieve vehicle by the licensePlate.")
+	public ResponseEntity<?> getVehicles(@PathVariable("licensePlate") String licensePlate) {
 
-		logger.info("Fetching vehicle with ID {}", id);
+		logger.info("Fetching vehicle with licensePlate {}", licensePlate);
 
 		VehicleResponseDTO vehicle = null;
 
 		try {
-			// Search vehicle in BD by ID
-			vehicle = vehicleService.getVehicle(id);
+			// Search vehicle in BD by licensePlate
+			vehicle = vehicleService.getVehicle(licensePlate);
 
 			return new ResponseEntity<>(vehicle, HttpStatus.OK);
 
@@ -130,83 +124,27 @@ public class VehicleController {
 
 		logger.info(("Process add new vehicle"));
 
-		Resources<CustomMessage> resource = null;
+		return vehicleService.addVehicle(vehicleRequestDTO);
 
-		try {
-
-			vehicleService.addVehicle(vehicleRequestDTO);
-
-			List<CustomMessage> customMessageList = ArrayListCustomMessage.setMessage("Created new vehicle",
-					HttpStatus.CREATED);
-
-			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(VehicleController.class).withSelfRel());
-			// resource.add(linkTo(ProducerDirectorController.class).withRel("vehicle_director"));
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-		}
-
-		return new ResponseEntity<>(resource, HttpStatus.OK);
 	}
 
 	/**
 	 * El método PATCH solicita que se aplique un conjunto de cambios descritos en
 	 * la entidad de solicitud al recurso identificado por el URI de Solicitud.
 	 * 
-	 * @param id                vehicle identifier
+	 * @param licensePlate      vehicle license plate
 	 * @param vehicleRequestDTO object to update
 	 * @return ResponseEntity with resource and status
 	 */
-	@PatchMapping(path = "/vehicles/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
+	@PatchMapping(path = "/vehicles/{licensePlate}", consumes = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Update the vehicle.")
-	public ResponseEntity<?> updateVehicles(@PathVariable("id") int id,
+	public ResponseEntity<?> updateVehicles(@PathVariable("licensePlate") String licensePlate,
 			@RequestBody VehicleRequestDTO vehicleRequestDTO) {
 
 		logger.info("Process patch vehicle");
 
-		Resources<CustomMessage> resource = null;
-
-		try {
-
-			List<CustomMessage> customMessageList = null;
-
-			// Find vehicle by id for check if exists in DB
-			VehicleResponseDTO vehicleResponseDTO = vehicleService.getVehicle(id);
-
-			// If exists
-			if (vehicleResponseDTO != null) {
-
-				customMessageList = ArrayListCustomMessage.setMessage("Patch vehicle process", HttpStatus.OK);
-
-				// Set the vehicle id to the wanted request object
-				vehicleRequestDTO.setId(id);
-
-				vehicleService.updateVehicle(vehicleRequestDTO);
-
-			} else {
-				customMessageList = ArrayListCustomMessage.setMessage("Vehicle Id" + id + " Not Found!",
-						HttpStatus.BAD_REQUEST);
-
-				resource = new Resources<>(customMessageList);
-				resource.add(linkTo(VehicleController.class).withSelfRel());
-
-				return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
-			}
-
-			resource = new Resources<>(customMessageList);
-			resource.add(linkTo(VehicleController.class).slash(id).withSelfRel());
-			// resource.add(linkTo(ProducerDirectorController.class).withRel("vehicle_director"));
-
-		} catch (Exception e) {
-			logger.error("An error occurred! {}", e.getMessage());
-			return CustomErrorType.returnResponsEntityError(e.getMessage());
-
-		}
-
-		return new ResponseEntity<>(resource, HttpStatus.OK);
+		return vehicleService.updateVehicle(licensePlate, vehicleRequestDTO);
 	}
 }

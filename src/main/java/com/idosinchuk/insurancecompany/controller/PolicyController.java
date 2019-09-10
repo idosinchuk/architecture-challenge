@@ -61,6 +61,8 @@ public class PolicyController {
 	public ResponseEntity<PagedResources<PolicyResponseDTO>> getAllPolicies(Pageable pageable,
 			PagedResourcesAssembler pagedResourcesAssembler, @RequestHeader("User-Agent") String userAgent) {
 
+		logger.info("Fetching all policies");
+
 		Page<PolicyResponseDTO> policy = null;
 
 		try {
@@ -81,18 +83,31 @@ public class PolicyController {
 	}
 
 	/**
-	 * Retrieve policy by the id.
+	 * Retrieve policy by the policyCode.
 	 * 
-	 * @param id policy identifier
+	 * @param policyCode policy code
 	 * @return ResponseEntity with status and policyResponseDTO
 	 */
-	@GetMapping(path = "/policies/{id}")
+	@GetMapping(path = "/policies/{policyCode}")
 	@ResponseBody
-	@ApiOperation(value = "Retrieve policy by the id.")
-	public ResponseEntity<?> getPolicies(@PathVariable("id") int id) {
+	@ApiOperation(value = "Retrieve policy by the policyCode.")
+	public ResponseEntity<?> getPolicies(@PathVariable("policyCode") String policyCode) {
 
-		return policyService.getPolicies(id);
+		logger.info("Fetching product with policyCode {}", policyCode);
 
+		PolicyResponseDTO policyResponseDTO = null;
+
+		try {
+			// Search product in BD by policyCode
+			policyResponseDTO = policyService.getPolicies(policyCode);
+
+			return new ResponseEntity<>(policyResponseDTO, HttpStatus.OK);
+
+		} catch (Exception e) {
+			logger.error("An error occurred! {}", e.getMessage());
+			return CustomErrorType.returnResponsEntityError(e.getMessage());
+
+		}
 	}
 
 	/**
@@ -106,6 +121,8 @@ public class PolicyController {
 	@ApiOperation(value = "Add a policy.")
 	public ResponseEntity<?> addPolicies(@RequestBody PolicyRequestDTO policyRequestDTO) {
 
+		logger.info("Process add policy");
+
 		return policyService.addPolicy(policyRequestDTO);
 
 	}
@@ -113,20 +130,19 @@ public class PolicyController {
 	/**
 	 * Update a policy
 	 * 
-	 * @param id               policy identifier
+	 * @param policyCode       policy code
 	 * @param policyRequestDTO object to update
 	 * @return ResponseEntity with resource and status
 	 */
-	@PatchMapping(path = "/policies/{id}", consumes = { MediaType.APPLICATION_JSON_VALUE,
+	@PatchMapping(path = "/policies/{policyCode}", consumes = { MediaType.APPLICATION_JSON_VALUE,
 			MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Update the policy.")
-	public ResponseEntity<?> updatePolicies(@PathVariable("id") int id,
+	public ResponseEntity<?> updatePolicies(@PathVariable("policyCode") String policyCode,
 			@RequestBody PolicyRequestDTO policyRequestDTO) {
 
-		// Set the policy ID to the wanted request object
-		policyRequestDTO.setId(id);
+		logger.info("Process patch policy");
 
-		return policyService.updatePolicy(policyRequestDTO);
+		return policyService.updatePolicy(policyCode, policyRequestDTO);
 	}
 }

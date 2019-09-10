@@ -42,4 +42,7 @@ public class HolderEntity {
 	@Column(name = "email", nullable = false)
 	private String email;
 
+	@Column(name = "passport_number", nullable = false)
+	private String passportNumber;
+
 }
