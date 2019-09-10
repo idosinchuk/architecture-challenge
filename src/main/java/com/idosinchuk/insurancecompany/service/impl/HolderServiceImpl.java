@@ -23,6 +23,8 @@ import com.idosinchuk.insurancecompany.controller.ProductController;
 import com.idosinchuk.insurancecompany.dto.HolderRequestDTO;
 import com.idosinchuk.insurancecompany.dto.HolderResponseDTO;
 import com.idosinchuk.insurancecompany.entity.HolderEntity;
+import com.idosinchuk.insurancecompany.entity.HolderHistoricalEntity;
+import com.idosinchuk.insurancecompany.repository.HolderHistoricalRepository;
 import com.idosinchuk.insurancecompany.repository.HolderRepository;
 import com.idosinchuk.insurancecompany.service.HolderService;
 import com.idosinchuk.insurancecompany.util.ArrayListCustomMessage;
@@ -39,6 +41,9 @@ public class HolderServiceImpl implements HolderService {
 
 	@Autowired
 	private HolderRepository holderRepository;
+
+	@Autowired
+	private HolderHistoricalRepository holderHistoricalRepository;
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -85,7 +90,7 @@ public class HolderServiceImpl implements HolderService {
 			// If exists
 			if (holderEntity != null) {
 				customMessageList = ArrayListCustomMessage.setMessage(
-						"Passport number" + holderRequestDTO.getPassportNumber() + " already exists in database!",
+						"Passport number" + holderRequestDTO.getPassportNumber() + " already exists.",
 						HttpStatus.BAD_REQUEST);
 
 				resource = new Resources<>(customMessageList);
@@ -138,8 +143,24 @@ public class HolderServiceImpl implements HolderService {
 				holderRequestDTO.setId(holderEntity.getId());
 
 				HolderEntity entityRequest = modelMapper.map(holderRequestDTO, HolderEntity.class);
-				holderRepository.save(entityRequest);
 
+				// Check if there are changes
+				if (!holderEntity.equals(entityRequest)) {
+					holderRepository.save(entityRequest);
+
+					// Save the holder information in a historical table
+					HolderHistoricalEntity holderHistoricalEntity = modelMapper.map(holderRequestDTO,
+							HolderHistoricalEntity.class);
+					holderHistoricalRepository.save(holderHistoricalEntity);
+				} else {
+					customMessageList = ArrayListCustomMessage.setMessage("There are no changes, please try again",
+							HttpStatus.BAD_REQUEST);
+
+					resource = new Resources<>(customMessageList);
+					resource.add(linkTo(HolderController.class).withSelfRel());
+
+					return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
+				}
 			} else {
 				customMessageList = ArrayListCustomMessage
 						.setMessage("Passport number " + passportNumber + " Not Found!", HttpStatus.BAD_REQUEST);

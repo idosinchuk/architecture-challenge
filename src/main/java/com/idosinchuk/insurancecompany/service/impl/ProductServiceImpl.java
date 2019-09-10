@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idosinchuk.insurancecompany.common.CustomMessage;
+import com.idosinchuk.insurancecompany.controller.HolderController;
 import com.idosinchuk.insurancecompany.controller.ProductController;
 import com.idosinchuk.insurancecompany.dto.ProductRequestDTO;
 import com.idosinchuk.insurancecompany.dto.ProductResponseDTO;
@@ -131,12 +132,26 @@ public class ProductServiceImpl implements ProductService {
 
 				customMessageList = ArrayListCustomMessage.setMessage("Patch product process", HttpStatus.OK);
 
-				// The product code will always be the same, so we do not allow it to be
+				// The product code and product id will always be the same, so we do not allow
+				// it to be
 				// updated, for them we overwrite the field with the original value.
 				productRequestDTO.setProductCode(productCode);
+				productRequestDTO.setId(productEntity.getId());
 
 				ProductEntity entityRequest = modelMapper.map(productRequestDTO, ProductEntity.class);
-				productRepository.save(entityRequest);
+
+				// Check if there are changes
+				if (!productEntity.equals(entityRequest)) {
+					productRepository.save(entityRequest);
+				} else {
+					customMessageList = ArrayListCustomMessage.setMessage("There are no changes, please try again",
+							HttpStatus.BAD_REQUEST);
+
+					resource = new Resources<>(customMessageList);
+					resource.add(linkTo(HolderController.class).withSelfRel());
+
+					return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
+				}
 
 			} else {
 				customMessageList = ArrayListCustomMessage.setMessage("Product Code" + productCode + " Not Found!",

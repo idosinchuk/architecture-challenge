@@ -12,8 +12,6 @@ import com.idosinchuk.insurancecompany.entity.HolderEntity;
  */
 public interface HolderRepository extends JpaRepository<HolderEntity, Integer> {
 
-	HolderEntity findById(int id);
-
 	HolderEntity findByPassportNumber(String passportNumber);
 
 }

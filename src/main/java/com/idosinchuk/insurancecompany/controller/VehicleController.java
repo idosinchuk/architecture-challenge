@@ -2,6 +2,8 @@ package com.idosinchuk.insurancecompany.controller;
 
 import java.util.Arrays;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,7 @@ public class VehicleController {
 	 * @param pageable paging fields
 	 * @return ResponseEntity with paged list of all vehicles, headers and status
 	 */
-	@GetMapping(path = "/vehicles")
+	@GetMapping(path = "/vehicles", produces = MediaType.APPLICATION_JSON_VALUE)
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@ResponseBody
 	@ApiOperation(value = "Retrieve list of all vehicles according to the search criteria.")
@@ -88,7 +90,7 @@ public class VehicleController {
 	 * @param licensePlate vehicle license plate
 	 * @return ResponseEntity with status and vehicleResponseDTO
 	 */
-	@GetMapping(path = "/vehicles/{licensePlate}")
+	@GetMapping(path = "/vehicles/{licensePlate}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@ApiOperation(value = "Retrieve vehicle by the licensePlate.")
 	public ResponseEntity<?> getVehicles(@PathVariable("licensePlate") String licensePlate) {
@@ -120,7 +122,7 @@ public class VehicleController {
 	@PostMapping(path = "/vehicles", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Add a vehicle.")
-	public ResponseEntity<?> addVehicles(@RequestBody VehicleRequestDTO vehicleRequestDTO) {
+	public ResponseEntity<?> addVehicles(@Valid @RequestBody VehicleRequestDTO vehicleRequestDTO) {
 
 		logger.info(("Process add new vehicle"));
 

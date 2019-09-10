@@ -2,6 +2,8 @@ package com.idosinchuk.insurancecompany.controller;
 
 import java.util.Arrays;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,7 @@ public class HolderController {
 	 * @param pageable paging fields
 	 * @return ResponseEntity with paged list of all holders, headers and status
 	 */
-	@GetMapping(path = "/holders")
+	@GetMapping(path = "/holders", produces = MediaType.APPLICATION_JSON_VALUE)
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@ResponseBody
 	@ApiOperation(value = "Retrieve list of all holders according to the search criteria.")
@@ -88,7 +90,7 @@ public class HolderController {
 	 * @param passportNumber holder passport number
 	 * @return ResponseEntity with status and holderResponseDTO
 	 */
-	@GetMapping(path = "/holders/{passportNumber}")
+	@GetMapping(path = "/holders/{passportNumber}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@ApiOperation(value = "Retrieve holder by the passportNumber.")
 	public ResponseEntity<?> getHolders(@PathVariable("passportNumber") String passportNumber) {
@@ -120,7 +122,7 @@ public class HolderController {
 	@PostMapping(path = "/holders", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Add a holder.")
-	public ResponseEntity<?> addHolders(@RequestBody HolderRequestDTO holderRequestDTO) {
+	public ResponseEntity<?> addHolders(@Valid @RequestBody HolderRequestDTO holderRequestDTO) {
 
 		logger.info(("Process add new holder"));
 

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idosinchuk.insurancecompany.common.CustomMessage;
+import com.idosinchuk.insurancecompany.controller.HolderController;
 import com.idosinchuk.insurancecompany.controller.PolicyController;
 import com.idosinchuk.insurancecompany.dto.PolicyRequestDTO;
 import com.idosinchuk.insurancecompany.dto.PolicyResponseDTO;
@@ -92,15 +93,16 @@ public class PolicyServiceImpl implements PolicyService {
 		Resources<CustomMessage> resource = null;
 
 		try {
+			List<CustomMessage> customMessageList = null;
+
 			PolicyEntity entityRequest = modelMapper.map(policyRequestDTO, PolicyEntity.class);
 
 			PolicyEntity policyEntity = policyRepository.findByPolicyCode(policyRequestDTO.getPolicyCode());
 
 			// Check if policyCode exists in the database
-			if (policyEntity.getPolicyCode() != null) {
-				List<CustomMessage> customMessageList = ArrayListCustomMessage.setMessage(
-						"The requested policy actually exists in database with the same policyCode",
-						HttpStatus.BAD_REQUEST);
+			if (policyEntity != null) {
+				customMessageList = ArrayListCustomMessage.setMessage(
+						"The requested policy actually exists. Please change policyCode.", HttpStatus.BAD_REQUEST);
 				resource = new Resources<>(customMessageList);
 				resource.add(linkTo(PolicyController.class).withSelfRel());
 
@@ -110,28 +112,27 @@ public class PolicyServiceImpl implements PolicyService {
 			// Check if product exists in the database
 			ProductEntity productEntity = productRepository.findByProductCode(policyRequestDTO.getProductCode());
 
-			if (productEntity != null) {
-				entityRequest.setProduct(productEntity);
-			}
-
 			// Check if holder exists in the database
 			HolderEntity holderEntity = holderRepository.findByPassportNumber(policyRequestDTO.getPassportNumber());
-
-			if (holderEntity != null) {
-				entityRequest.setHolder(holderEntity);
-			}
 
 			// Check if vehicle exists in the database
 			VehicleEntity vehicleEntity = vehicleRepository.findByLicensePlate(policyRequestDTO.getLicensePlate());
 
-			if (vehicleEntity != null) {
+			if (productEntity != null && holderEntity != null && vehicleEntity != null) {
+				entityRequest.setProduct(productEntity);
+				entityRequest.setHolder(holderEntity);
 				entityRequest.setVehicle(vehicleEntity);
+			} else {
+				customMessageList = ArrayListCustomMessage.setMessage("Some of the requested data are not correct",
+						HttpStatus.BAD_REQUEST);
+				resource = new Resources<>(customMessageList);
+				resource.add(linkTo(PolicyController.class).withSelfRel());
+				return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
 			}
 
 			policyRepository.save(entityRequest);
 
-			List<CustomMessage> customMessageList = ArrayListCustomMessage.setMessage("Created new policy",
-					HttpStatus.CREATED);
+			customMessageList = ArrayListCustomMessage.setMessage("Created new policy", HttpStatus.CREATED);
 
 			resource = new Resources<>(customMessageList);
 			resource.add(linkTo(PolicyController.class).withSelfRel());
@@ -164,13 +165,15 @@ public class PolicyServiceImpl implements PolicyService {
 			// If exists
 			if (policyEntity != null) {
 
-				// The policy's code will always be the same, so we do not allow it to be
+				// The policy's code and ID will always be the same, so we do not allow it to be
 				// updated, for them we overwrite the field with the original value.
 				policyRequestDTO.setPolicyCode(policyCode);
+				policyRequestDTO.setId(policyEntity.getId());
 
 				PolicyEntity entityRequest = modelMapper.map(policyRequestDTO, PolicyEntity.class);
 
 				if (policyRequestDTO.getProductCode() != null && !policyRequestDTO.getProductCode().isEmpty()) {
+
 					ProductEntity productEntity = productRepository
 							.findByProductCode(policyRequestDTO.getProductCode());
 
@@ -221,7 +224,18 @@ public class PolicyServiceImpl implements PolicyService {
 					}
 				}
 
-				policyRepository.save(entityRequest);
+				// Check if there are changes
+				if (!policyEntity.equals(entityRequest)) {
+					policyRepository.save(entityRequest);
+				} else {
+					customMessageList = ArrayListCustomMessage.setMessage("There are no changes, please try again",
+							HttpStatus.BAD_REQUEST);
+
+					resource = new Resources<>(customMessageList);
+					resource.add(linkTo(HolderController.class).withSelfRel());
+
+					return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
+				}
 
 			} else {
 				customMessageList = ArrayListCustomMessage.setMessage(

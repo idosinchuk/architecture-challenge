@@ -2,6 +2,8 @@ package com.idosinchuk.insurancecompany.controller;
 
 import java.util.Arrays;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,7 @@ public class ProductController {
 	 * @param pageable paging fields
 	 * @return ResponseEntity with paged list of all products, headers and status
 	 */
-	@GetMapping(path = "/products")
+	@GetMapping(path = "/products", produces = MediaType.APPLICATION_JSON_VALUE)
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@ResponseBody
 	@ApiOperation(value = "Retrieve list of all products according to the search criteria.")
@@ -88,7 +90,7 @@ public class ProductController {
 	 * @param productCode product code
 	 * @return ResponseEntity with status and productResponseDTO
 	 */
-	@GetMapping(path = "/products/{productCode}")
+	@GetMapping(path = "/products/{productCode}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@ApiOperation(value = "Retrieve product by the productCode.")
 	public ResponseEntity<?> getProducts(@PathVariable("productCode") String productCode) {
@@ -120,7 +122,7 @@ public class ProductController {
 	@PostMapping(path = "/products", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
 	@ResponseBody
 	@ApiOperation(value = "Add a product.")
-	public ResponseEntity<?> addProducts(@RequestBody ProductRequestDTO productRequestDTO) {
+	public ResponseEntity<?> addProducts(@Valid @RequestBody ProductRequestDTO productRequestDTO) {
 
 		logger.info(("Process add new product"));
 

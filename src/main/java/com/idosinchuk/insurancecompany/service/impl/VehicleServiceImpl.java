@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.idosinchuk.insurancecompany.common.CustomMessage;
+import com.idosinchuk.insurancecompany.controller.HolderController;
 import com.idosinchuk.insurancecompany.controller.VehicleController;
 import com.idosinchuk.insurancecompany.dto.VehicleRequestDTO;
 import com.idosinchuk.insurancecompany.dto.VehicleResponseDTO;
@@ -84,7 +85,7 @@ public class VehicleServiceImpl implements VehicleService {
 			// If exists
 			if (vehicleEntity != null) {
 				customMessageList = ArrayListCustomMessage.setMessage(
-						"Vehicle license plate" + vehicleRequestDTO.getLicensePlate() + " already exists in database!",
+						"Vehicle license plate" + vehicleRequestDTO.getLicensePlate() + " already exists.",
 						HttpStatus.BAD_REQUEST);
 
 				resource = new Resources<>(customMessageList);
@@ -138,7 +139,19 @@ public class VehicleServiceImpl implements VehicleService {
 				vehicleRequestDTO.setId(vehicleEntity.getId());
 
 				VehicleEntity entityRequest = modelMapper.map(vehicleRequestDTO, VehicleEntity.class);
-				vehicleRepository.save(entityRequest);
+
+				// Check if there are changes
+				if (!vehicleEntity.equals(entityRequest)) {
+					vehicleRepository.save(entityRequest);
+				} else {
+					customMessageList = ArrayListCustomMessage.setMessage("There are no changes, please try again",
+							HttpStatus.BAD_REQUEST);
+
+					resource = new Resources<>(customMessageList);
+					resource.add(linkTo(HolderController.class).withSelfRel());
+
+					return new ResponseEntity<>(resource, HttpStatus.BAD_REQUEST);
+				}
 
 			} else {
 				customMessageList = ArrayListCustomMessage.setMessage("License plate " + licensePlate + " Not Found!",

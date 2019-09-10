@@ -2,6 +2,8 @@ package com.idosinchuk.insurancecompany.controller;
 
 import java.util.Arrays;
 
+import javax.validation.Valid;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +56,7 @@ public class PolicyController {
 	 * @param pageable paging fields
 	 * @return ResponseEntity with paged list of all policies, headers and status
 	 */
-	@GetMapping(path = "/policies")
+	@GetMapping(path = "/policies", produces = MediaType.APPLICATION_JSON_VALUE)
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@ResponseBody
 	@ApiOperation(value = "Retrieve list of all policies according to the search criteria.")
@@ -88,7 +90,7 @@ public class PolicyController {
 	 * @param policyCode policy code
 	 * @return ResponseEntity with status and policyResponseDTO
 	 */
-	@GetMapping(path = "/policies/{policyCode}")
+	@GetMapping(path = "/policies/{policyCode}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@ApiOperation(value = "Retrieve policy by the policyCode.")
 	public ResponseEntity<?> getPolicies(@PathVariable("policyCode") String policyCode) {
@@ -116,10 +118,10 @@ public class PolicyController {
 	 * @param policyRequestDTO object to save
 	 * @return ResponseEntity with status and policyResponseDTO
 	 */
-	@PostMapping(path = "/policies", consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE })
+	@PostMapping(path = "/policies", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@ApiOperation(value = "Add a policy.")
-	public ResponseEntity<?> addPolicies(@RequestBody PolicyRequestDTO policyRequestDTO) {
+	public ResponseEntity<?> addPolicies(@Valid @RequestBody PolicyRequestDTO policyRequestDTO) {
 
 		logger.info("Process add policy");
 
@@ -134,8 +136,7 @@ public class PolicyController {
 	 * @param policyRequestDTO object to update
 	 * @return ResponseEntity with resource and status
 	 */
-	@PatchMapping(path = "/policies/{policyCode}", consumes = { MediaType.APPLICATION_JSON_VALUE,
-			MediaType.APPLICATION_XML_VALUE })
+	@PatchMapping(path = "/policies/{policyCode}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseBody
 	@ApiOperation(value = "Update the policy.")
 	public ResponseEntity<?> updatePolicies(@PathVariable("policyCode") String policyCode,

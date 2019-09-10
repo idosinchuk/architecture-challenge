@@ -12,8 +12,6 @@ import com.idosinchuk.insurancecompany.entity.VehicleEntity;
  */
 public interface VehicleRepository extends JpaRepository<VehicleEntity, Integer> {
 
-	VehicleEntity findById(int id);
-
 	VehicleEntity findByLicensePlate(String licensePlate);
 
 }

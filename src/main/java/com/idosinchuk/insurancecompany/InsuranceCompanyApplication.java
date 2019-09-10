@@ -4,6 +4,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -14,7 +15,10 @@ import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+@Configuration
+@EnableSwagger2
 @SpringBootApplication
 public class InsuranceCompanyApplication {
 
@@ -35,8 +39,8 @@ public class InsuranceCompanyApplication {
 
 	// Describe your apis
 	private ApiInfo apiInfo() {
-		return new ApiInfoBuilder().title("Swagger Filmproducer")
-				.description("This page lists all the rest apis for Swagger Filmproducer.").version("1.0-SNAPSHOT")
+		return new ApiInfoBuilder().title("Swagger InsuranceCompany")
+				.description("This page lists all the rest apis for Swagger InsuranceCompany.").version("1.0-SNAPSHOT")
 				.build();
 	}
 

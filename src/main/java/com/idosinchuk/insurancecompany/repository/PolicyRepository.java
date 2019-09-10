@@ -12,8 +12,6 @@ import com.idosinchuk.insurancecompany.entity.PolicyEntity;
  */
 public interface PolicyRepository extends JpaRepository<PolicyEntity, Integer> {
 
-	PolicyEntity findById(int id);
-
 	PolicyEntity findByPolicyCode(String policyCode);
 
 }
