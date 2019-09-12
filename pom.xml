@@ -9,11 +9,11 @@
 		<version>2.1.7.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.idosinchuk</groupId>
-	<artifactId>insurance-company-architecture-challenge</artifactId>
+	<groupId>com.idosinchuk.architecturechallenge.insurancecompany</groupId>
+	<artifactId>InsuranceCompany-ArchitectureChallenge</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>insurance-company-architecture-challenge</name>
-	<description>Microservice for insurance company architecture-challenge project</description>
+	<name>InsuranceCompany-ArchitectureChallenge</name>
+	<description>Microservice for architecture-challenge project</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
